@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=HPTemp
+Comment=Monitor HP Z workstation CPU/GPU temperatures and fans
+Exec=hptemp
+Icon=hptemp
+Terminal=false
+Type=Application
+Categories=System;Monitor;
+StartupWMClass=HPTemp
+Keywords=temperature;fan;gpu;cpu;monitor;sensors;hp;workstation;z2;

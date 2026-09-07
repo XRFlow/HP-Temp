@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product
+      Id="*"
+      Name="HPTemp"
+      Language="1033"
+      Version="$(var.ProductVersion)"
+      Manufacturer="XRFlow"
+      UpgradeCode="C7C76B79-7E3C-4D9D-9DAF-A429D0E6AD66">
+    <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+    <MajorUpgrade DowngradeErrorMessage="A newer version of HPTemp is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <Icon Id="AppIcon.exe" SourceFile="$(var.IconFile)" />
+    <Property Id="ARPPRODUCTICON" Value="AppIcon.exe" />
+    <Property Id="ARPHELPLINK" Value="https://github.com/XRFlow/HP-Temp" />
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/XRFlow/HP-Temp" />
+    <Property Id="ARPCONTACT" Value="support@xrflows.com" />
+
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFiles64Folder">
+        <Directory Id="INSTALLFOLDER" Name="HPTemp" />
+      </Directory>
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ApplicationProgramsFolder" Name="HPTemp" />
+      </Directory>
+      <Directory Id="DesktopFolder" Name="Desktop" />
+    </Directory>
+
+    <DirectoryRef Id="ApplicationProgramsFolder">
+      <Component Id="StartMenuShortcut" Guid="99410F37-7563-4DDF-9676-1934787118C5">
+        <Shortcut
+            Id="StartMenuHPTemp"
+            Name="HPTemp"
+            Description="CPU, GPU, and chassis sensor monitor"
+            Target="[INSTALLFOLDER]HPTemp.exe"
+            WorkingDirectory="INSTALLFOLDER"
+            Icon="AppIcon.exe" />
+        <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall" />
+        <RegistryValue Root="HKCU" Key="Software\XRFlow\HPTemp" Name="installed" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </DirectoryRef>
+
+    <DirectoryRef Id="DesktopFolder">
+      <Component Id="DesktopShortcut" Guid="41E65473-AD78-4CC6-A9A9-B1DE86125FAD">
+        <Shortcut
+            Id="DesktopHPTemp"
+            Name="HPTemp"
+            Target="[INSTALLFOLDER]HPTemp.exe"
+            WorkingDirectory="INSTALLFOLDER"
+            Icon="AppIcon.exe" />
+        <RegistryValue Root="HKCU" Key="Software\XRFlow\HPTemp" Name="desktop" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </DirectoryRef>
+
+    <Feature Id="MainApplication" Title="HPTemp" Level="1">
+      <ComponentGroupRef Id="AppFiles" />
+      <ComponentRef Id="StartMenuShortcut" />
+      <ComponentRef Id="DesktopShortcut" />
+    </Feature>
+  </Product>
+</Wix>

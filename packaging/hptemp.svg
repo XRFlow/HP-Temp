@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="hpBlue" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#5ec8f0"/>
+      <stop offset="1" stop-color="#0096d6"/>
+    </linearGradient>
+    <linearGradient id="heat" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#7dd3fc"/>
+      <stop offset="1" stop-color="#0284c7"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="48" fill="#0b1c28"/>
+  <rect x="100" y="28" width="56" height="140" rx="28" fill="#e2e8f0"/>
+  <rect x="114" y="44" width="28" height="108" rx="14" fill="url(#heat)"/>
+  <circle cx="128" cy="192" r="46" fill="url(#hpBlue)"/>
+  <circle cx="128" cy="192" r="22" fill="#0b1c28"/>
+  <path d="M48 86h40M48 128h28M48 170h40" stroke="#0096d6" stroke-width="10" stroke-linecap="round"/>
+</svg>
