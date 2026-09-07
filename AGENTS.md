@@ -20,7 +20,8 @@ If you introduce a new top-level directory, document it here.
 - `./scripts/install_user.sh` — install a user launcher (`~/.local/bin/hptemp`) so the app grid runs this tree.
 - `PYTHONPATH=src python3 -m hptemp` — same, but must be run from the repo root.
 - `PYTHONPATH=src python3 -m pytest tests` — run the unit test suite.
-- `./scripts/build_deb.sh` — build `build/hptemp_<version>_all.deb`.
+- `./scripts/build_deb.sh` — thin `build/hptemp_<version>_all.deb` (system PyQt).
+- `./scripts/build_deb_bundle.sh` — self-contained `build/hptemp_<version>_amd64.deb` (PyInstaller).
 - `./scripts/build_windows.ps1` — Windows PyInstaller + Inno EXE + WiX MSI (Windows only).
 
 ## Coding Style & Naming Conventions

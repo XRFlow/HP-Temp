@@ -2,19 +2,27 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 from pathlib import Path
 
-root = Path(SPECPATH).resolve().parent.parent
+from PyInstaller.utils.hooks import collect_all
+
+root = Path(SPECPATH).resolve().parent
 src = root / "src"
+icon = root / "packaging" / "hptemp.ico"
+
+qt_datas, qt_binaries, qt_hidden = collect_all("PyQt6")
+extra_datas = [
+    (str(root / "packaging" / "hptemp.svg"), "packaging"),
+    (str(root / "LICENSE"), "."),
+]
+if icon.exists():
+    extra_datas.append((str(icon), "packaging"))
 
 a = Analysis(
     [str(root / "packaging" / "windows_entry.py")],
     pathex=[str(src)],
-    binaries=[],
-    datas=[
-        (str(root / "packaging" / "hptemp.svg"), "packaging"),
-        (str(root / "packaging" / "hptemp.ico"), "packaging"),
-        (str(root / "LICENSE"), "."),
-    ],
-    hiddenimports=[
+    binaries=qt_binaries,
+    datas=qt_datas + extra_datas,
+    hiddenimports=qt_hidden
+    + [
         "hptemp",
         "hptemp.app",
         "hptemp.sensors",
@@ -30,10 +38,7 @@ a = Analysis(
     noarchive=False,
 )
 pyz = PYZ(a.pure)
-exe = EXE(
-    pyz,
-    a.scripts,
-    [],
+exe_kwargs = dict(
     exclude_binaries=True,
     name="HPTemp",
     debug=False,
@@ -42,8 +47,10 @@ exe = EXE(
     upx=False,
     console=False,
     disable_windowed_traceback=False,
-    icon=str(root / "packaging" / "hptemp.ico"),
 )
+if icon.exists():
+    exe_kwargs["icon"] = str(icon)
+exe = EXE(pyz, a.scripts, [], **exe_kwargs)
 coll = COLLECT(
     exe,
     a.binaries,

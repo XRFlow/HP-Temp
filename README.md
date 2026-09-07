@@ -42,10 +42,21 @@ Settings: `~/.config/hptemp/settings.json`.
 
 ### .deb
 
+Self-contained amd64 installer (bundles Python and Qt):
+
+```bash
+./scripts/build_deb_bundle.sh
+sudo dpkg -i build/hptemp_0.3.0_amd64.deb
+```
+
+Thin package that uses system Python:
+
 ```bash
 ./scripts/build_deb.sh
 sudo dpkg -i build/hptemp_0.3.0_all.deb
 ```
+
+GitHub Actions on `main` publishes the self-contained `.deb` plus Windows Setup.exe, MSI, and a portable zip.
 
 ## Windows (Z2 and other HP workstations)
 
