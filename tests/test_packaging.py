@@ -9,6 +9,7 @@ def test_inno_script_outputs_versioned_setup_exe() -> None:
     assert "OutputBaseFilename=HPTemp-{#MyAppVersion}-Setup" in text
     assert r'Source: "dist\HPTemp\*"' in text
     assert "SourceDir={#SourceRoot}" in text
+    assert "AppPublisherEmail" not in text
     assert "ArchitecturesAllowed=x64compatible" in text
 
 
