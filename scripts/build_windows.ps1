@@ -1,8 +1,17 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Build HPTemp for Windows: onedir app, Inno Setup EXE, WiX MSI, and portable zip.
+param(
+    [switch]$SkipDeps
+)
 $ErrorActionPreference = "Stop"
+$PSNativeCommandUseErrorActionPreference = $false
 $Root = Split-Path -Parent $PSScriptRoot
 Set-Location $Root
+
+trap {
+    Write-Host "::error::$($_.Exception.Message)"
+    break
+}
 
 function Test-RequireInstallers {
     return ($env:GITHUB_ACTIONS -eq "true") -or ($env:CI -eq "true")
@@ -59,8 +68,10 @@ $Version = python -c "import sys; sys.path.insert(0, r'src'); from hptemp import
 if (-not $Version) { throw "Could not read hptemp.__version__" }
 Write-Host "Building HPTemp $Version"
 
-python -m pip install -q -r requirements.txt PyQt6-Charts pyinstaller
-if ($LASTEXITCODE -ne 0) { throw "pip install failed" }
+if (-not $SkipDeps) {
+    python -m pip install -q -r requirements.txt PyQt6-Charts pyinstaller
+    if ($LASTEXITCODE -ne 0) { throw "pip install failed with exit code $LASTEXITCODE" }
+}
 
 python -m PyInstaller --noconfirm --clean --distpath dist --workpath build\pyinstaller packaging\hptemp.spec
 if ($LASTEXITCODE -ne 0) { throw "PyInstaller failed" }
