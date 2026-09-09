@@ -93,9 +93,11 @@ jobs:
           $bits += "inno=$(@(Get-ChildItem 'C:\Program Files*\Inno Setup*' -ErrorAction SilentlyContinue | ForEach-Object FullName) -join ',')"
           Write-Host "::error::windows-diagnose $($bits -join ' | ')"
       - name: Upload Windows installers
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: hptemp-windows
+          if-no-files-found: warn
           path: |
             dist/HPTemp-*-Setup.exe
             dist/HPTemp-*.msi

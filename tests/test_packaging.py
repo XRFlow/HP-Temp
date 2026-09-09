@@ -21,6 +21,8 @@ def test_windows_build_script_finds_64bit_inno() -> None:
     assert r"$env:ProgramFiles" in text
     assert "windows-portable.zip" in text
     assert "GITHUB_ACTIONS" in text
+    assert "-var var.HarvestDir" in text
+    assert "-sval" in text
 
 
 def test_ci_windows_job_uses_build_script() -> None:

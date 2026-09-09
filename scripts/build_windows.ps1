@@ -108,17 +108,26 @@ if ($WixBin) {
     $env:PATH = "$WixBin;$env:PATH"
     New-Item -ItemType Directory -Force -Path build | Out-Null
     $Harvest = "build\harvested.wxs"
-    & heat.exe dir "dist\HPTemp" -cg AppFiles -gg -sfrag -srd -sreg -dr INSTALLFOLDER -out $Harvest
+    & heat.exe dir $AppDir -cg AppFiles -gg -sfrag -srd -sreg -dr INSTALLFOLDER -var var.HarvestDir -out $Harvest
     if ($LASTEXITCODE -ne 0) { throw "WiX heat failed with exit code $LASTEXITCODE" }
     & candle.exe -nologo -arch x64 `
         "-dProductVersion=$Version" `
         "-dIconFile=$Root\packaging\hptemp.ico" `
+        "-dHarvestDir=$AppDir" `
         "packaging\hptemp.wxs" $Harvest -o build\
     if ($LASTEXITCODE -ne 0) { throw "WiX candle failed with exit code $LASTEXITCODE" }
-    & light.exe -nologo `
+    $lightOut = New-Object System.Collections.Generic.List[string]
+    & light.exe -nologo -sval -spdb -b $AppDir `
         "build\hptemp.wixobj" "build\harvested.wixobj" `
-        -o "dist\HPTemp-$Version.msi"
-    if ($LASTEXITCODE -ne 0) { throw "WiX light failed with exit code $LASTEXITCODE" }
+        -o "dist\HPTemp-$Version.msi" 2>&1 | ForEach-Object {
+            $line = "$_"
+            Write-Host $line
+            [void]$lightOut.Add($line)
+        }
+    if ($LASTEXITCODE -ne 0) {
+        $tail = ($lightOut | Select-Object -Last 20) -join " | "
+        throw "WiX light failed with exit code $LASTEXITCODE : $tail"
+    }
 } elseif (Test-RequireInstallers) {
     throw "WiX Toolset v3 not found (need heat.exe / candle.exe / light.exe). Install the WiX v3 toolset to build the MSI."
 } else {
