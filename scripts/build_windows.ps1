@@ -64,7 +64,7 @@ function Find-WiXBin {
     return $null
 }
 
-$Version = python -c "import sys; sys.path.insert(0, r'src'); from hptemp import __version__; print(__version__)"
+$Version = (python -c "import sys; sys.path.insert(0, r'src'); from hptemp import __version__; print(__version__)").Trim()
 if (-not $Version) { throw "Could not read hptemp.__version__" }
 Write-Host "Building HPTemp $Version"
 
@@ -83,9 +83,19 @@ if (-not (Test-Path -LiteralPath (Join-Path $AppDir "HPTemp.exe"))) {
 
 $Inno = Find-ISCC
 if ($Inno) {
+    $SourceRoot = $Root.Replace("\", "/")
     Write-Host "Using Inno Setup compiler: $Inno"
-    & $Inno "/DMyAppVersion=$Version" packaging\hptemp.iss
-    if ($LASTEXITCODE -ne 0) { throw "Inno Setup failed with exit code $LASTEXITCODE" }
+    Write-Host "ISCC SourceRoot=$SourceRoot Version=$Version"
+    $isccOut = New-Object System.Collections.Generic.List[string]
+    & $Inno "/DMyAppVersion=$Version" "/DSourceRoot=$SourceRoot" packaging\hptemp.iss 2>&1 | ForEach-Object {
+        $line = "$_"
+        Write-Host $line
+        [void]$isccOut.Add($line)
+    }
+    if ($LASTEXITCODE -ne 0) {
+        $tail = ($isccOut | Select-Object -Last 20) -join " | "
+        throw "Inno Setup failed with exit code $LASTEXITCODE : $tail"
+    }
 } elseif (Test-RequireInstallers) {
     throw "Inno Setup not found (looked on PATH and under Program Files / LocalAppData). Install from https://jrsoftware.org/isinfo.php"
 } else {

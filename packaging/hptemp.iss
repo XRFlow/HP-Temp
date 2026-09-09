@@ -2,6 +2,9 @@
 #ifndef MyAppVersion
   #define MyAppVersion "0.3.0"
 #endif
+#ifndef SourceRoot
+  #define SourceRoot ".."
+#endif
 #define MyAppPublisher "XRFlow"
 #define MyAppURL "https://github.com/XRFlow/HP-Temp"
 #define MyAppExeName "HPTemp.exe"
@@ -17,7 +20,7 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={localappdata}\Programs\{#MyAppName}
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
-SourceDir=..
+SourceDir={#SourceRoot}
 LicenseFile=LICENSE
 OutputDir=dist
 OutputBaseFilename=HPTemp-{#MyAppVersion}-Setup

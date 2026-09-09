@@ -8,6 +8,7 @@ def test_inno_script_outputs_versioned_setup_exe() -> None:
     text = (ROOT / "packaging" / "hptemp.iss").read_text(encoding="utf-8")
     assert "OutputBaseFilename=HPTemp-{#MyAppVersion}-Setup" in text
     assert r'Source: "dist\HPTemp\*"' in text
+    assert "SourceDir={#SourceRoot}" in text
     assert "ArchitecturesAllowed=x64compatible" in text
 
 
