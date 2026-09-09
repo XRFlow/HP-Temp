@@ -3,6 +3,7 @@ name: Build packages
 on:
   push:
     branches: [main]
+    tags: ["v*"]
   pull_request:
   workflow_dispatch:
 
@@ -35,34 +36,32 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install Python deps
-        run: python -m pip install -r requirements.txt PyQt6-Charts pyinstaller
-      - name: PyInstaller
-        run: python -m PyInstaller --noconfirm --clean --distpath dist --workpath build/pyinstaller packaging/hptemp.spec
-      - name: Read version
-        id: version
-        shell: bash
-        run: echo "value=$(python -c 'import sys; sys.path.insert(0,"src"); from hptemp import __version__; print(__version__)')" >> "$GITHUB_OUTPUT"
-      - name: Install Inno Setup
-        run: choco install innosetup -y --no-progress
-      - name: Build EXE installer
-        run: |
-          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DMyAppVersion=${{ steps.version.outputs.value }}" packaging\hptemp.iss
-      - name: Install WiX
-        run: choco install wixtoolset -y --no-progress
-      - name: Build MSI
+      - name: Install Inno Setup and WiX
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path build | Out-Null
-          $wix = "${env:ProgramFiles(x86)}\WiX Toolset v3.14\bin"
-          if (-not (Test-Path "$wix\heat.exe")) { $wix = "${env:ProgramFiles(x86)}\WiX Toolset v3.11\bin" }
-          $env:PATH = "$wix;$env:PATH"
-          heat.exe dir dist\HPTemp -cg AppFiles -gg -sfrag -srd -sreg -dr INSTALLFOLDER -out build\harvested.wxs
-          candle.exe -nologo -arch x64 "-dProductVersion=${{ steps.version.outputs.value }}" "-dIconFile=$PWD\packaging\hptemp.ico" packaging\hptemp.wxs build\harvested.wxs -o build\
-          light.exe -nologo build\hptemp.wixobj build\harvested.wixobj -o "dist\HPTemp-${{ steps.version.outputs.value }}.msi"
-      - name: Zip portable app
+          choco install innosetup wixtoolset -y --no-progress
+          $paths = @(
+            "$env:ProgramData\chocolatey\bin",
+            "$env:ProgramFiles\Inno Setup 6",
+            "${env:ProgramFiles(x86)}\Inno Setup 6",
+            "$env:ProgramFiles\Inno Setup 7",
+            "${env:ProgramFiles(x86)}\Inno Setup 7",
+            "${env:ProgramFiles(x86)}\WiX Toolset v3.14\bin",
+            "${env:ProgramFiles(x86)}\WiX Toolset v3.11\bin",
+            "$env:ProgramFiles\WiX Toolset v3.14\bin"
+          )
+          foreach ($p in $paths) {
+            if ($p -and (Test-Path -LiteralPath $p)) {
+              Add-Content -Path $env:GITHUB_PATH -Value $p
+              Write-Host "Added to PATH: $p"
+            }
+          }
+          Get-ChildItem "C:\Program Files\Inno Setup*" -ErrorAction SilentlyContinue
+          Get-ChildItem "C:\Program Files (x86)\Inno Setup*" -ErrorAction SilentlyContinue
+          Get-Command ISCC.exe -ErrorAction SilentlyContinue | Format-List
+      - name: Build Windows packages
         shell: pwsh
-        run: Compress-Archive -Path dist\HPTemp -DestinationPath "dist\HPTemp-${{ steps.version.outputs.value }}-windows-portable.zip"
+        run: .\scripts\build_windows.ps1
       - name: Upload Windows installers
         uses: actions/upload-artifact@v4
         with:
@@ -71,3 +70,24 @@ jobs:
             dist/HPTemp-*-Setup.exe
             dist/HPTemp-*.msi
             dist/HPTemp-*-windows-portable.zip
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [linux-bundle, windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Publish GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "HPTemp ${GITHUB_REF_NAME#v}" \
+            --generate-notes \
+            artifacts/hptemp-linux/* \
+            artifacts/hptemp-windows/*
